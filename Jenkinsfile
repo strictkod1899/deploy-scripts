@@ -62,7 +62,7 @@ pipeline{
                 } catch {
                 	Write-Error ""
                 	Write-Error "[ERROR]: DOWNLOAD DEPENDENCIES ERROR"
-                	Write-Error "[ERROR]: $($_.Exception)"
+                	Write-Error "[ERROR]: \$(\$_.Exception)"
                 	Write-Error ""
                 	exit 1
                 }

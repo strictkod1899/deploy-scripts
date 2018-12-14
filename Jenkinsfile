@@ -1,0 +1,179 @@
+pipeline{
+    agent any
+
+    /*
+        При создании pipeline на основе этого необходимо изменить defaultValue для параметра GIT_BRANCH_NAME
+    */
+
+    options {
+        timeout(time: 1, unit: 'HOURS')
+    }
+
+    parameters{
+        string(name: 'GIT_BRANCH_NAME', defaultValue: 'develop', description: 'Branch to git interaction')
+    }
+
+    triggers{
+        pollSCM('H/10 * * * *')
+    }
+
+    environment{
+        APP_PROJECT_ROOT_PATH = "./app"
+        APP_FILE_NAME = "myapp.jar"
+        UPDATE_VERSION_MESSAGE = "version updated"
+        IS_SHOULD_BUILD = powershell(
+            script: """
+                git checkout ${params.GIT_BRANCH_NAME}
+                git pull origin ${params.GIT_BRANCH_NAME}
+                \$lastCommit = git log -1 | Select-String '$UPDATE_VERSION_MESSAGE'
+                if(\$lastCommit -ne \$null -And \$lastCommit -ne ""){
+                    exit 1
+                }
+            """,
+            returnStatus: true)
+    }
+
+    stages {
+        stage('check'){
+            when{
+                environment name: 'IS_SHOULD_BUILD', value: '0'
+            }
+            steps{
+                powershell """
+                \$gitBranch = "${params.GIT_BRANCH_NAME}"
+                if(\$gitBranch -eq \$null -Or \$gitBranch -eq ''){
+                    Write-Error ""
+                    Write-Error "[ERROR]: DEPLOY ERROR"
+                    Write-Error "[ERROR]: Branch for deploy is NULL"
+                    Write-Error ""
+                    exit 1
+                }
+                """
+            }
+        }
+        stage('download-dependencies'){
+            when{
+                environment name: 'IS_SHOULD_BUILD', value: '0'
+            }
+            steps{
+                powershell """
+                try{
+                	mvn dependency:copy-dependencies
+                } catch {
+                	Write-Error ""
+                	Write-Error "[ERROR]: DOWNLOAD DEPENDENCIES ERROR"
+                	Write-Error "[ERROR]: $($_.Exception)"
+                	Write-Error ""
+                	exit 1
+                }
+                """
+            }
+        }
+        stage('test'){
+            when{
+                environment name: 'IS_SHOULD_BUILD', value: '0'
+            }
+            steps{
+                powershell """
+                try{
+                    deploy/test.ps1
+                } catch {
+                    Write-Error ""
+                    Write-Error "[ERROR]: TESTS ERROR"
+                    Write-Error "[ERROR]: \$(\$_.Exception)"
+                    Write-Error ""
+                    exit 1
+                }
+                """
+                junit "**/surefire-reports/*.xml"
+            }
+        }
+        stage('update-version'){
+            when{
+                environment name: 'IS_SHOULD_BUILD', value: '0'
+            }
+            steps{
+                powershell """
+                
+                # modules without root pom.xml
+                \$childModulesPath = ./db/pom.xml", "./services/pom.xml", "./app/pom.xml", "./jstrict/pom.xml"
+                \$modulesPath = "./pom.xml", "./db/pom.xml", "./services/pom.xml", "./app/pom.xml"
+
+                try{
+                    # Update versions
+                    ./deploy/update_versions_maven.ps1 -modulesPath \$modulesPath
+                    
+                    # Update parent versions
+                    ./deploy/update_parent_version_maven.ps1 -modulesPath \$childModulesPath
+
+                    # Update dependency versions
+                    ./deploy/update_dependency_version_maven -dependencyGroupId "ru.strict" -dependencyArtifactId "db" -modulesPath \$modulesPath
+                    ./deploy/update_dependency_version_maven -dependencyGroupId "ru.strict" -dependencyArtifactId "services" -modulesPath \$modulesPath
+                } catch {
+                    Write-Error ""
+                    Write-Error "[ERROR]: UPDATE VERSION ERROR"
+                    Write-Error "[ERROR]: \$(\$_.Exception)"
+                    Write-Error ""
+                    exit 1
+                }
+                """
+                powershell """
+                try{
+                    ./deploy/git_commit.ps1 -branch ${params.GIT_BRANCH_NAME} -message "$UPDATE_VERSION_MESSAGE"
+                } catch {
+                    Write-Error ""
+                    Write-Error "[ERROR]: GIT COMMIT ERROR"
+                    Write-Error "[ERROR]: \$(\$_.Exception)"
+                    Write-Error ""
+                    exit 1
+                }
+                """
+            }
+        }
+        stage('build'){
+            when{
+                environment name: 'IS_SHOULD_BUILD', value: '0'
+            }
+            steps{
+                powershell """
+                try{
+                    deploy/build.ps1
+                } catch {
+                    Write-Error ""
+                    Write-Error "[ERROR]: BUILD ERROR"
+                    Write-Error "[ERROR]: \$(\$_.Exception)"
+                    Write-Error ""
+                    exit 1
+                }
+                """
+            }
+        }
+        stage('release'){
+            when{
+                environment name: 'IS_SHOULD_BUILD', value: '0'
+            }
+            steps{
+                powershell """
+                try{
+                    deploy/release.ps1 -appProjectRootPath $APP_PROJECT_ROOT_PATH -appFileName $APP_FILE_NAME
+                } catch {
+                    Write-Error ""
+                    Write-Error "[ERROR]: RELEASE ERROR"
+                    Write-Error "[ERROR]: \$(\$_.Exception)"
+                    Write-Error ""
+                    exit 1
+                }
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            slackSend color: "#14CA1E", message: "SUCCESS - ${env.JOB_NAME} BUILD-#${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        }
+        failure {
+            slackSend color: "#BF0000", message: "FAILED - ${env.JOB_NAME} BUILD-#${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        }
+    }
+}

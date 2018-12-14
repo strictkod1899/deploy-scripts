@@ -5,7 +5,7 @@ $app_project_root_path = "./app"
 $appFileName = "myapp.jar"
 
 try{
-	mvn dependency:copy-dependencies
+	./deploy/download_dependencies.ps1
 } catch {
 	Write-Error ""
 	Write-Error "[ERROR]: DOWNLOAD DEPENDENCIES ERROR"

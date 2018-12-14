@@ -21,7 +21,7 @@ if($branch -eq $null -Or $branch -eq ''){
 }
 
 try{
-	mvn dependency:copy-dependencies
+	./deploy/download_dependencies.ps1
 } catch {
 	Write-Error ""
 	Write-Error "[ERROR]: DOWNLOAD DEPENDENCIES ERROR"

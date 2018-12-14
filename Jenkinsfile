@@ -58,7 +58,7 @@ pipeline{
             steps{
                 powershell """
                 try{
-                	mvn dependency:copy-dependencies
+                	deploy/download_dependencies.ps1
                 } catch {
                 	Write-Error ""
                 	Write-Error "[ERROR]: DOWNLOAD DEPENDENCIES ERROR"

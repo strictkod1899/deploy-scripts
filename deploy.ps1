@@ -1,12 +1,15 @@
-# Выполнение полного развертывания проекта
+# Полный deploy проекта с обновлением версии и выполнением push в указанную ветку
 # Скрипт запускать из корневой директории проекта
+# Пример использования скрипта:
+#    | ./deploy/deploy.ps1 -branch "develop"
 
 param(
 	# required
+	# Наименование git-ветки для взаимодействия с SCV
 	[string]$branch
 )
 
-$app_project_root_path = "./app"
+$appProjectRootPath = "./app"
 $appFileName = "myapp.jar"
 # modules without root pom.xml
 $childModulesPath = "./db/pom.xml", "./services/pom.xml", "./app/pom.xml", "./jstrict/pom.xml"
@@ -15,7 +18,7 @@ $modulesPath = "./pom.xml", "./db/pom.xml", "./services/pom.xml", "./app/pom.xml
 if($branch -eq $null -Or $branch -eq ''){
 	Write-Error ""
 	Write-Error "[ERROR]: DEPLOY ERROR"
-	Write-Error "[ERROR]: Branch for deploy is NULL"
+	Write-Error "[ERROR]: Branch for deployment is NULL"
 	Write-Error ""
 	exit 1
 }
@@ -58,16 +61,17 @@ try{
 }
 
 try{
-	./deploy/git_commit.ps1 -branch $branch -message "updated a version"
+	./deploy/git_commit.ps1 -branch "${branch}" -message "version updated"
 } catch {
 	Write-Error ""
-	Write-Error "[ERROR]: GIT COMMIT ERROR"
+	Write-Error "[ERROR]: GIT COMMIT 'UPDATED VERSION' ERROR"
 	Write-Error "[ERROR]: $($_.Exception)"
 	Write-Error ""
 	exit 1
 }
 
 try{
+	./deploy/compile.ps1
 	./deploy/build.ps1
 } catch {
 	Write-Error ""
@@ -78,7 +82,7 @@ try{
 }
 
 try{
-	./deploy/release.ps1 -appProjectRootPath $app_project_root_path -appFileName $appFileName
+	./deploy/release.ps1 -appProjectRootPath "${appProjectRootPath}" -appFileName "${appFileName}"
 } catch {
 	Write-Error ""
 	Write-Error "[ERROR]: RELEASE ERROR"

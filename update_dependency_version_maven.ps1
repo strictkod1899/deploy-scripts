@@ -1,5 +1,9 @@
-# Обновить версию используемой зависимости в pom.xml файлах указанных модулей. В зависимости от параметра 'isIncrement' версия зависимости будет либо увеличена на +1, либо уменьшина на -1
+# Обновить версию, используемой зависимости, в pom.xml файлах, указанных модулей.
+# В зависимости от параметра 'isIncrement' версия зависимости будет либо увеличена на +1, либо уменьшина на -1
 # Скрипт запускать из корневой директории проекта
+# Пример использования скрипта:
+#    | $modulesPath = "./pom.xml", "./db/pom.xml", "./services/pom.xml", "./app/pom.xml"
+#    | ./deploy/update_dependency_version_maven -dependencyGroupId "ru.strict" -dependencyArtifactId "db" -modulesPath $modulesPath
 
 param(
     # requred
@@ -9,17 +13,15 @@ param(
     # Название артефакта зависимости, версия которого будет обновлена
     [string]$dependencyArtifactId,
     # required
+    # Список модулей, в которых обновляется версия указанной зависимости
     # example: .\update_dependency_version_maven.ps1 -modulesPath ./db/pom.xml, ./services/pom.xml
     [string[]]$modulesPath,
     # optional
+    # Увеличивать версию или уменьшать
     # 0 - null; 1 - increment; 2 - decrement
     # default = 1
     [int]$isIncrement
 )
-
-Write-Host ""
-Write-Host "            - START A VERSION UPDATE FOR DEPENDENCY [${dependencyGroupId} / ${dependencyArtifactId}]"
-Write-Host ""
 
 if($dependencyGroupId -eq $null -Or $dependencyGroupId -eq ''){
 	throw "param 'dependencyGroupId' is NULL"
@@ -38,6 +40,13 @@ foreach($modulePath in $modulesPath){
         throw "file not found [${modulePath}] from param 'modulesPath'"
     }
 }
+
+Write-Host ""
+Write-Host "            - THE VERSION UPDATE FOR DEPENDENCY [${dependencyGroupId} / ${dependencyArtifactId}] HAS STARTED"
+Write-Host ""
+
+Write-Host "[INFO]: dependencyGroupId = ${dependencyGroupId}"
+Write-Host "[INFO]: dependencyArtifactId = ${dependencyArtifactId}"
 
 $xmlNodePath = "//*/ns:dependencies/ns:dependency"
 
@@ -86,7 +95,7 @@ try{
     }
 
     Write-Host ""
-    Write-Host "            - SUCCESS A VERSION UPDATE FOR DEPENDENCY [${dependencyGroupId} / ${dependencyArtifactId}]"
+    Write-Host "            - THE VERSION UPDATE FOR DEPENDENCY [${dependencyGroupId} / ${dependencyArtifactId}] HAS COMPLETED"
     Write-Host ""
 }catch{
     throw "$($_.Exception)"

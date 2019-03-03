@@ -1,7 +1,7 @@
 # Локальная сборка проекта (без запуска тестов) без обновления версии, взаимодействия с scv и т.д.
 # Скрипт запускать из корневой директории проекта
 
-$app_project_root_path = "./app"
+$appProjectRootPath = "./app"
 $appFileName = "bet-strict.exe"
 
 try{
@@ -25,7 +25,7 @@ try{
 }
 
 try{
-	./deploy/release.ps1 -appProjectRootPath $app_project_root_path -appFileName $appFileName
+	./deploy/release.ps1 -appProjectRootPath "${appProjectRootPath}" -appFileName "${appFileName}"
 } catch {
 	Write-Error ""
 	Write-Error "[ERROR]: RELEASE ERROR"

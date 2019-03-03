@@ -2,7 +2,7 @@
 # Скрипт запускать из корневой директории проекта
 
 Write-Host ""
-Write-Host "            - START A DEPENDENCIES DOWLOAD"
+Write-Host "            - THE DEPENDENCIES DOWLOADING HAS STARTED"
 Write-Host ""
 
 try{
@@ -12,5 +12,5 @@ try{
 }
 
 Write-Host ""
-Write-Host "            - SUCCESS A DEPENDENCIES DOWLOAD"
+Write-Host "            - THE DEPENDENCIES DOWLOADING HAS COMPLETED"
 Write-Host ""

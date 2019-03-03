@@ -1,6 +1,7 @@
 # Процесс обнволения версии. На вход поступает исходная версия, а на выход поступает обновленная версия
 # В зависимости от параметра 'isIncrement' версия будет либо увеличена на +1, либо уменьшина на -1
-# Пример использования скрипта: $newVersionValue = &"./deploy/update_version.ps1" -version "0.1.3" | Select-Object -Last 1
+# Пример использования скрипта:
+#    | $newVersionValue = &"./deploy/update_version.ps1" -version "0.1.3" | Select-Object -Last 1
 
 param(
     # required
@@ -10,10 +11,6 @@ param(
     # default = 1
     [int]$isIncrement
 )
-
-Write-Host ""
-Write-Host "            - START A VERSION UPDATE = ${version}"
-Write-Host ""
 
 if($version -eq $null -Or $version -eq ''){
     throw "version is NULL"
@@ -27,6 +24,10 @@ if($isIncrement -eq $null -Or $isIncrement -eq 0){
     Write-Warning "[WARN]: param 'isIncrement' is NULL, so will be using a default value"
     $isIncrement = 1
 }
+
+Write-Host ""
+Write-Host "            - THE VERSION UPDATE = ${version} HAS STARTED"
+Write-Host ""
 
 Write-Host "[INFO]: version = ${version}"
 Write-Host "[INFO]: isIncrement = ${isIncrement}"
@@ -52,7 +53,7 @@ try{
     $newVersionValue = "${leftPartVersion}${versionForUpdate}"
 
     Write-Host ""
-    Write-Host "            - SUCCESS A VERSION UPDATE = ${newVersionValue}"
+    Write-Host "            - THE VERSION UPDATE = ${version} HAS COMPLETED"
     Write-Host ""
     return $newVersionValue
 }catch{

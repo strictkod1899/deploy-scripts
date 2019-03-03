@@ -1,5 +1,7 @@
 # Выполнение публикации собранного проекта: копирование файлов проекта в общую директорию
 # Скрипт запускать из корневой директории проекта
+# Пример использования скрипта:
+#    | ./deploy/release.ps1 -appProjectRootPath "./app" -appFileName "myapp.jar"
 
 param(
 	# required
@@ -9,22 +11,31 @@ param(
 	# example: myapp.jar
 	[string]$appFileName,
 	# optional
+	# Копировать библиотеки проекта
 	# default = false
-	[bool]$isCopyLibs
+	[bool]$isCopyLibs,
+	# optional
+	# Название каталога с библиотекаими проекта
+	# default = libs
+	[string]$libsFolderName
 )
 
 Write-Host ""
-Write-Host "			- START A PROJECT RELEASE"
+Write-Host "			- THE PROJECT RELEASE HAS STARTED"
 Write-Host ""
 
 if($appProjectRootPath -eq $null -Or $appProjectRootPath -eq ''){
-	throw "param 'appProjectRootPath' IS NULL"
+	throw "param 'appProjectRootPath' is NULL"
 }
 if(!(Test-Path -Path "${appProjectRootPath}")){
 	throw "directory does not exists [${appProjectRootPath}]"
 }
 if($appFileName -eq $null -Or $appFileName -eq ''){
-	throw "param 'appFileName' IS NULL"
+	throw "param 'appFileName' is NULL"
+}
+if($libsFolderName -eq $null -Or $libsFolderName -eq ''){
+    Write-Warning "[WARN]: param 'libsFolderName' is NULL, so will be using a default value"
+    $libsFolderName = "libs"
 }
 
 Write-Host ""
@@ -32,55 +43,54 @@ Write-Host "[INFO]:			- determine variables"
 Write-Host ""
 
 try{
-	$app_project_root_path = $appProjectRootPath
-	$app_project_target_path = "${app_project_root_path}/target"
-	$app_file_path = "${app_project_target_path}/${appFileName}"
-	$app_libs_path = "${app_project_target_path}/libs"
-	$deploy_folder_root = "./deploy"
-	$deploy_folder_target = "${deploy_folder_root}/target"
-	$deploy_folder_sources = "${deploy_folder_root}/sources"
-	$deploy_folder_libs_path = "${deploy_folder_target}/libs"
+	$appProjectTargetPath = "${appProjectRootPath}/target"
+	$appFilePath = "${appProjectTargetPath}/${appFileName}"
+	$appLibsPath = "${appProjectTargetPath}/${libsFolderName}"
+	$deployFolderRoot = "./deploy"
+	$deployFolderTarget = "${deployFolderRoot}/target"
+	$deployFolderSources = "${deployFolderRoot}/sources"
+	$deployFolderLibs = "${deployFolderTarget}/${libsFolderName}"
 
 	Write-Host "[INFO]: - appFileName = ${appFileName}"
-	Write-Host "[INFO]: - app_project_root_path = ${app_project_root_path}"
-	Write-Host "[INFO]: - app_project_target_path = ${app_project_target_path}"
-	Write-Host "[INFO]: - app_file_path = ${app_file_path}"
-	Write-Host "[INFO]: - app_libs_path = ${app_libs_path}"
-	Write-Host "[INFO]: - deploy_folder_root = ${deploy_folder_root}"
-	Write-Host "[INFO]: - deploy_folder_target = ${deploy_folder_target}"
-	Write-Host "[INFO]: - deploy_folder_libs_path = ${deploy_folder_libs_path}"
+	Write-Host "[INFO]: - appProjectRootPath = ${appProjectRootPath}"
+	Write-Host "[INFO]: - appProjectTargetPath = ${appProjectTargetPath}"
+	Write-Host "[INFO]: - appFilePath = ${appFilePath}"
+	Write-Host "[INFO]: - appLibsPath = ${appLibsPath}"
+	Write-Host "[INFO]: - deployFolderRoot = ${deployFolderRoot}"
+	Write-Host "[INFO]: - deployFolderTarget = ${deployFolderTarget}"
+	Write-Host "[INFO]: - deployFolderLibs = ${deployFolderLibs}"
 	Write-Host "[INFO]: - isCopyLibs = ${isCopyLibs}"
 
 	Write-Host ""
-	Write-Host "[INFO]:			- start deploy folder clean"
+	Write-Host "[INFO]:			- deploy folder clean has started"
 	Write-Host ""
-	If(Test-Path -Path "${deploy_folder_target}"){
-		Remove-Item "${deploy_folder_target}/*" -Recurse -ErrorAction Stop
+	If(Test-Path -Path "${deployFolderTarget}"){
+		Remove-Item "${deployFolderTarget}/*" -Recurse -ErrorAction Stop
 	} else {
-		New-Item $deploy_folder_target -ItemType Directory -ErrorAction Stop
+		New-Item $deployFolderTarget -ItemType Directory -ErrorAction Stop
 	}
 
 	Write-Host ""
-	Write-Host "[INFO]:			- start project copy to deploy folder"
+	Write-Host "[INFO]:			- project copy in deploy folder has started"
 	Write-Host ""
-	Copy-Item $app_file_path -Destination $deploy_folder_target -ErrorAction Stop
-	If((Test-Path -Path "${app_libs_path}")){
+	Copy-Item $appFilePath -Destination $deployFolderTarget -ErrorAction Stop
+	If((Test-Path -Path "${appLibsPath}")){
 		if($isCopyLibs -eq $True){
-			New-Item $deploy_folder_libs_path -ItemType Directory -ErrorAction Stop
-			Copy-Item "${app_libs_path}/*" -Destination "${deploy_folder_libs_path}"
+			New-Item $deployFolderLibs -ItemType Directory -ErrorAction Stop
+			Copy-Item "${appLibsPath}/*" -Destination "${deployFolderLibs}"
 		}
 	} else {
-		Write-Warning "[WARN]: libs folder [${app_libs_path}] does not exists"
+		Write-Warning "[WARN]: libs folder [${appLibsPath}] does not exists"
 	}
 
-	If(Test-Path -Path "${deploy_folder_sources}"){
-		Copy-Item "${deploy_folder_sources}/*" -Destination $deploy_folder_target
+	If(Test-Path -Path "${deployFolderSources}"){
+		Copy-Item "${deployFolderSources}/*" -Destination $deployFolderTarget
 	} else {
-		Write-Warning "[WARN]: sources folder [${deploy_folder_sources}] does not exists"
+		Write-Warning "[WARN]: sources folder [${deployFolderSources}] does not exists"
 	}
 
 	Write-Host ""
-	Write-Host "			- SUCCESS A PROJECT RELEASE"
+	Write-Host "			- THE PROJECT RELEASE HAS COMPLETED"
 	Write-Host ""
 }catch{
 	throw "$($_.Exception)"

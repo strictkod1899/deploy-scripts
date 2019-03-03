@@ -14,7 +14,7 @@ pipeline{
     }
 
     triggers{
-        pollSCM('H/10 * * * *')
+        pollSCM('H/20 * * * *')
     }
 
     environment{
@@ -136,6 +136,7 @@ pipeline{
             steps{
                 powershell """
                 try{
+                    deploy/compile.ps1
                     deploy/build.ps1
                 } catch {
                     Write-Error ""

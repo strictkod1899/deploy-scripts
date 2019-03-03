@@ -57,6 +57,7 @@ try{
 
 	try{
 		&"${tomcatBin}/shutdown"
+		Start-Sleep -s 5
 	}catch{
 		throw "$($_.Exception)"
 	}
@@ -82,6 +83,7 @@ try{
 
 	try{
 		&"${tomcatBin}/startup"
+		Start-Sleep -s 5
 	}catch{
 		throw "$($_.Exception)"
 	}

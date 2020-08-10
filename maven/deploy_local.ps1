@@ -1,45 +1,4 @@
-# Локальная сборка проекта без обновления версии, взаимодействия с scv и т.д.
+# Сборка проекта (обновление версии и push в ветку git не выполняется)
 # Скрипт запускать из корневой директории проекта
 
-$appProjectRootPath = "./app"
-$appFileName = "myapp.jar"
-
-try{
-	./deploy/download_dependencies.ps1
-} catch {
-	Write-Warning ""
-	Write-Warning "[WARN]: DOWNLOAD DEPENDENCIES ERROR"
-	Write-Warning "[WARN]: $($_.Exception)"
-	Write-Warning ""
-}
-
-try{
-	./deploy/test.ps1
-} catch {
-	Write-Error ""
-	Write-Error "[ERROR]: TESTS ERROR"
-	Write-Error "[ERROR]: $($_.Exception)"
-	Write-Error ""
-	exit 1
-}
-
-try{
-	./deploy/compile.ps1
-	./deploy/build.ps1
-} catch {
-	Write-Error ""
-	Write-Error "[ERROR]: BUILD ERROR"
-	Write-Error "[ERROR]: $($_.Exception)"
-	Write-Error ""
-	exit 1
-}
-
-try{
-	./deploy/release.ps1 -appProjectRootPath "${appProjectRootPath}" -appFileName "${appFileName}"
-} catch {
-	Write-Error ""
-	Write-Error "[ERROR]: RELEASE ERROR"
-	Write-Error "[ERROR]: $($_.Exception)"
-	Write-Error ""
-	exit 1
-}
+./deploy/deploy.ps1 -appFilePath ".\app\target\myapp.jar" -skipGit $True -skipUpdateVersion $True

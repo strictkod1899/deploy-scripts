@@ -2,15 +2,11 @@
 # Скрипт запускать из корневой директории проекта
 
 Write-Host ""
-Write-Host "            - THE PROJECT BUILD HAS STARTED"
+Write-Host "            - [START] - PROJECT BUILD"
 Write-Host ""
 
-try{
-    mvn install -DskipTests
-}catch{
-    throw "$($_.Exception)"
-}
+mvn clean package -DskipTests
 
 Write-Host ""
-Write-Host "            - THE PROJECT BUILD HAS COMPLETED"
+Write-Host "            - [FINISH] - PROJECT BUILD"
 Write-Host ""

@@ -1,10 +1,6 @@
 pipeline{
     agent any
 
-    /*
-        При создании pipeline на основе этого необходимо изменить defaultValue для параметра GIT_BRANCH_NAME
-    */
-
     options {
         timeout(time: 1, unit: 'HOURS')
     }

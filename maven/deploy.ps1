@@ -51,7 +51,7 @@ if ($mode -cne $null -And $mode -cne '') {
 	}
 }
 
-# create new version
+# increment version
 if ($skipUpdateVersion -eq $True) {
 	Write-Warning ""
 	Write-Warning "[WARN]: PROJECT BUILD WITHOUT UPDATE VERSION"
@@ -73,7 +73,7 @@ $buildVersion = &"./deploy/version/get_current_version_by_mode.ps1" -versionsFil
 
 if ($skipTests -eq $True) {
 	Write-Warning ""
-	Write-Warning "[WARN]: PROJECT BUILD WITHOUT TEST"
+	Write-Warning "[WARN]: PROJECT BUILD WITHOUT TESTS"
 	Write-Warning ""
 } else {
 	./deploy/core/test.ps1 -version "${buildVersion}"
